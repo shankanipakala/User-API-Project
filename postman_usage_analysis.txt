@@ -1,0 +1,61 @@
+| Method | Validation Level | Where |
+|--------|------------------|-------|
+| Postman Tests Tab | Manual field validation | Inside Postman |
+| Newman + Custom Tests | Schema-based validation | CLI |
+| Prism / Dredd / Speccy | Full spec compliance | External tools |
+
+Pre-request:
+--sample API sepcifications file
+--server simulation on localhost:3000 with RestAPI Post Request as per specifications
+
+
+Tools to convert api_spec.yml to postman-schema:
+https://github.com/postmanlabs/openapi-to-postman
+$ npm install openapi-to-postmanv2 OR
+$ npm i -g openapi-to-postmanv2
+
+JS code in Post-Response Scripts(a.k.a Tests):
+--------------------
+const schema = {
+  type: "object",
+  required: ["user"],
+  properties: {
+    user: {
+      type: "object",
+      required: ["name", "email", "age"],
+      properties: {
+        name: { type: "string" },
+        email: { type: "string", format: "email" },
+        age: { type: "integer", minimum: 18 }
+      }
+    }
+  }
+};
+
+pm.test("Validate response schema", function () {
+  pm.expect(tv4.validate(pm.response.json(), schema)).to.be.true;
+});
+
+pm.test("Status code is 200", function () {
+  pm.response.to.have.status(200);
+});
+
+pm.test("Validate response has required fields", function () {
+    const jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property("name");
+    pm.expect(jsonData).to.have.property("email");
+    pm.expect(jsonData.age).to.be.above(17);
+});
+
+How to run postman request on Postman CLI:
+--install Newman npm install -g newman
+--export collections from postman as ".json" file
+--export environment(url, secrets) to ".json" file
+>newman run UserRegistrationAPI_postman_collection.json -e UsersUrl_postman_environment.json
+
+How to run Postman CLI on CI/CD:
+--create postman.yml from (Postman-->collection-->run-->(Choose how to run your collection)-->Run on CI/CD)
+--update server url and secret keys in postman.yml
+--upload/commit postman.yml to cloud repo(github/bitbucket/..)
+--Goto Github-->Action-->run (postman.yml)
+--Verify the Test results
