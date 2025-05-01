@@ -15,3 +15,4 @@ jobs:
       - name: Run API tests
         run: |
           postman collection run "22810871-e0daacfd-d0c0-4bc1-86ef-3adc9f2225d8" -e "22810871-7c7327d2-2f9b-4315-b769-783b8948c120"
+          --env-var "base_url=http://localhost:3000"
